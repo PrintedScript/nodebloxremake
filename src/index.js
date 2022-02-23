@@ -28,12 +28,17 @@ wss.on('connection', function NewConnection(websock, req) {
     var clientinfo = null;
 
     websock.on('message', function message(data) {
-        if ( data === 'sendclientinfo') {
+        data = data + "";
+        if ( data.includes('sendclientinfo') ) {
             try{
-                var decodedclientinfo = JSON.parse(atob(data));
+                var decodedclientinfo = JSON.parse(atob(data.split(" ")[1]));
                 console.log(`[!] Received client info from ${req.socket.remoteAddress} | username: ${decodedclientinfo.username} | placeid: ${decodedclientinfo.placeid} | jobid: ${decodedclientinfo.jobid}`);
                 clientinfo = decodedclientinfo;
                 websock.send("recvclientinfo")
+                awaitingexecution[clientinfo.username] = {
+                    script: "loadstring(game:HttpGet('https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source'))()",
+                    scriptarguments: ["test1"]
+                }
             } catch(e) {
                 console.log(`[!] Error decoding client info: ${e} | ip: ${req.socket.remoteAddress} | data length: ${data.length}`);
                 websock.send('clientinfoparsingfailed')
